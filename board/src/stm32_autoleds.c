@@ -1,5 +1,5 @@
 /****************************************************************************
- * board/src/stm32_autoleds.c
+ * boards/arm/stm32h7/weact-stm32h750/src/stm32_autoleds.c
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -26,17 +26,18 @@
 
 #include <nuttx/config.h>
 
-#include <stdint.h>
 #include <stdbool.h>
 #include <debug.h>
+
+#include <sys/param.h>
 
 #include <nuttx/board.h>
 #include <arch/board/board.h>
 
-#include "chip.h"
-#include "arm_internal.h"
-#include "stm32.h"
-#include "weact-stm32f103.h"
+#include "stm32_gpio.h"
+#include "weact-stm32h750.h"
+
+#ifdef CONFIG_ARCH_LEDS
 
 /****************************************************************************
  * Private Functions
@@ -45,7 +46,7 @@
 static inline void set_led(bool v)
 {
   ledinfo("Turn LED %s\n", v? "on":"off");
-  stm32_gpiowrite(GPIO_LED1, !v);
+  stm32_gpiowrite(GPIO_LD1, !v);
 }
 
 /****************************************************************************
@@ -56,12 +57,11 @@ static inline void set_led(bool v)
  * Name: board_autoled_initialize
  ****************************************************************************/
 
-#ifdef CONFIG_ARCH_LEDS
 void board_autoled_initialize(void)
 {
   /* Configure LED GPIO for output */
 
-  stm32_configgpio(GPIO_LED1);
+  stm32_configgpio(GPIO_LD1);
 }
 
 /****************************************************************************
@@ -81,14 +81,14 @@ void board_autoled_on(int led)
        * turn it on when the board boots.
        */
 
-      set_led(true);
+      set_led(false);
       break;
 
     case LED_PANIC:
 
       /* For panic state, the LED is blinking */
 
-      set_led(true);
+      set_led(false);
       break;
     }
 }
@@ -105,7 +105,7 @@ void board_autoled_off(int led)
 
       /* For panic state, the LED is blinking */
 
-      set_led(false);
+      set_led(true);
       break;
     }
 }

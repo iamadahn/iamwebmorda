@@ -1,5 +1,5 @@
 /****************************************************************************
- * board/src/stm32_appinit.c
+ * boards/arm/stm32h7/weact-stm32h750/src/stm32_appinitialize.c
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -26,16 +26,14 @@
 
 #include <nuttx/config.h>
 
-#include <stdbool.h>
-#include <stdio.h>
-#include <syslog.h>
-#include <errno.h>
-
+#include <sys/types.h>
 #include <nuttx/board.h>
-#include <nuttx/timers/oneshot.h>
 
-#include "stm32.h"
-#include "weact-stm32f103.h"
+#include "weact-stm32h750.h"
+
+/****************************************************************************
+ * Pre-processor Definitions
+ ****************************************************************************/
 
 /****************************************************************************
  * Public Functions
@@ -68,7 +66,13 @@
 
 int board_app_initialize(uintptr_t arg)
 {
-  /* Perform board initialization here */
+#ifdef CONFIG_BOARD_LATE_INITIALIZE
+  /* Board initialization already performed by board_late_initialize() */
+
+  return OK;
+#else
+  /* Perform board-specific initialization */
 
   return stm32_bringup();
+#endif
 }

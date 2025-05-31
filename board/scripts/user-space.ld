@@ -1,5 +1,5 @@
 /****************************************************************************
- * boards/arm/stm32/stm32f103-minimum/scripts/ld.script
+ * boards/arm/stm32h7/weact-stm32h750/scripts/user-space.ld
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -20,32 +20,19 @@
  *
  ****************************************************************************/
 
-/* The STM32F103C8T6 has 64Kb of FLASH beginning at address 0x0800:0000 and
- * 20Kb of SRAM beginning at address 0x2000:0000.  When booting from FLASH,
- * FLASH memory is aliased to address 0x0000:0000 where the code expects to
- * begin execution by jumping to the entry point in the 0x0800:0000 address
- * range.
- *
- * NOTE: While the STM32F103C8T6 states that the part has 64Kb of FLASH,
- * all parts that I have seen do, in fact, have 128Kb of FLASH.  That
- * additional 64Kb of FLASH can be utilized by simply change the LENGTH
- * of the flash region from 64K to 128K.
+/* NOTE:  This depends on the memory.ld script having been included prior to
+ * this script.
  */
 
-MEMORY
-{
-  flash (rx) : ORIGIN = 0x08000000, LENGTH = 128K
-  sram (rwx) : ORIGIN = 0x20000000, LENGTH = 20K
-}
-
 OUTPUT_ARCH(arm)
-EXTERN(_vectors)
-ENTRY(_stext)
 SECTIONS
 {
+    .userspace : {
+        *(.userspace)
+    } > uflash
+
     .text : {
         _stext = ABSOLUTE(.);
-        *(.vectors)
         *(.text .text.*)
         *(.fixup)
         *(.gnu.warning)
@@ -57,60 +44,47 @@ SECTIONS
         *(.gcc_except_table)
         *(.gnu.linkonce.r.*)
         _etext = ABSOLUTE(.);
-    } > flash
+    } > uflash
 
-    .init_section : ALIGN(4) {
+    .init_section : {
         _sinit = ABSOLUTE(.);
         KEEP(*(SORT_BY_INIT_PRIORITY(.init_array.*) SORT_BY_INIT_PRIORITY(.ctors.*)))
-        KEEP(*(.init_array EXCLUDE_FILE(*crtbegin.o *crtbegin?.o *crtend.o *crtend?.o) .ctors))
+        KEEP(*(.init_array .ctors))
         _einit = ABSOLUTE(.);
-    } > flash
+    } > uflash
 
-    .ARM.extab : ALIGN(4) {
+    .ARM.extab : {
         *(.ARM.extab*)
-    } > flash
+    } > uflash
 
-    .ARM.exidx : ALIGN(4) {
-        __exidx_start = ABSOLUTE(.);
+    __exidx_start = ABSOLUTE(.);
+    .ARM.exidx : {
         *(.ARM.exidx*)
-        __exidx_end = ABSOLUTE(.);
-    } > flash
+    } > uflash
 
-    .tdata : {
-        _stdata = ABSOLUTE(.);
-        *(.tdata .tdata.* .gnu.linkonce.td.*);
-        _etdata = ABSOLUTE(.);
-    } > flash
+    __exidx_end = ABSOLUTE(.);
 
-    .tbss : {
-        _stbss = ABSOLUTE(.);
-        *(.tbss .tbss.* .gnu.linkonce.tb.* .tcommon);
-        _etbss = ABSOLUTE(.);
-    } > flash
+    _eronly = ABSOLUTE(.);
 
-    _eronly = LOADADDR(.data);
-
-    /* The STM32F103C8T6 has 20Kb of SRAM beginning at the following address */
-
-    .data : ALIGN(4) {
+    .data : {
         _sdata = ABSOLUTE(.);
         *(.data .data.*)
         *(.gnu.linkonce.d.*)
         CONSTRUCTORS
         . = ALIGN(4);
         _edata = ABSOLUTE(.);
-    } > sram AT > flash
+    } > usram AT > uflash
 
-    .bss : ALIGN(4) {
+    .bss : {
         _sbss = ABSOLUTE(.);
         *(.bss .bss.*)
         *(.gnu.linkonce.b.*)
         *(COMMON)
         . = ALIGN(4);
         _ebss = ABSOLUTE(.);
-    } > sram
+    } > usram
 
-    /* Stabs debugging sections. */
+    /* Stabs debugging sections */
 
     .stab 0 : { *(.stab) }
     .stabstr 0 : { *(.stabstr) }

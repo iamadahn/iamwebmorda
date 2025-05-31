@@ -1,5 +1,5 @@
 /****************************************************************************
- * board/src/stm32_lcd_ssd1306.c
+ * boards/arm/stm32h7/weact-stm32h750/src/stm32_ioctl.c
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -26,63 +26,51 @@
 
 #include <nuttx/config.h>
 
-#include <debug.h>
+#include <sys/types.h>
+#include <stdint.h>
+#include <errno.h>
 
 #include <nuttx/board.h>
-#include <nuttx/lcd/lcd.h>
-#include <nuttx/lcd/ssd1306.h>
 
-#include "stm32.h"
-#include "weact-stm32f103.h"
+#include "weact-stm32h750.h"
 
-#include "stm32_ssd1306.h"
-
-/****************************************************************************
- * Pre-processor Definitions
- ****************************************************************************/
-
-#define OLED_I2C_PORT         1 /* OLED display connected to I2C1 */
-
-/****************************************************************************
- * Private Data
- ****************************************************************************/
+#ifdef CONFIG_BOARDCTL_IOCTL
 
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
 
 /****************************************************************************
- * Name: board_lcd_initialize
+ * Name: board_ioctl
+ *
+ * Description:
+ *   The "landing site" for much of the boardctl() interface. Generic board-
+ *   control functions invoked via ioctl() get routed through here.
+ *
+ *   Since we don't do anything unusual at the moment, this function
+ *   accomplishes nothing except avoid a missing-function linker error if
+ *   CONFIG_BOARDCTL_IOCTL is selected.
+ *
+ * Input Parameters:
+ *   cmd - IOCTL command being requested.
+ *   arg - Arguments for the IOCTL.
+ *
+ * Returned Value:
+ *   we don't yet support any boardctl IOCTLs.  This function always returns
+ *  -ENOTTY which is the standard IOCTL return value when a command is not
+ *  supported
+ *
  ****************************************************************************/
 
-int board_lcd_initialize(void)
+int board_ioctl(unsigned int cmd, uintptr_t arg)
 {
-  int ret;
-
-  ret = board_ssd1306_initialize(OLED_I2C_PORT);
-  if (ret < 0)
+  switch (cmd)
     {
-      lcderr("ERROR: Failed to initialize SSD1306\n");
-      return ret;
+      default:
+        return -ENOTTY;
     }
 
   return OK;
 }
 
-/****************************************************************************
- * Name: board_lcd_getdev
- ****************************************************************************/
-
-struct lcd_dev_s *board_lcd_getdev(int devno)
-{
-  return board_ssd1306_getdev();
-}
-
-/****************************************************************************
- * Name: board_lcd_uninitialize
- ****************************************************************************/
-
-void board_lcd_uninitialize(void)
-{
-  /* TO-FIX */
-}
+#endif /* CONFIG_BOARDCTL_IOCTL */

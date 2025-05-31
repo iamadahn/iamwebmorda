@@ -1,5 +1,5 @@
 /****************************************************************************
- * board/include/board.h
+ * boards/arm/stm32h7/weact-stm32h750/include/board.h
  *
  * SPDX-License-Identifier: Apache-2.0
  *
@@ -20,17 +20,20 @@
  *
  ****************************************************************************/
 
-#ifndef __BOARDS_ARM_STM32_WEACTSTM32F103_INCLUDE_BOARD_H
-#define __BOARDS_ARM_STM32_WEACTSTM32F103_INCLUDE_BOARD_H
+#ifndef __BOARDS_ARM_STM32H7_WEACT_STM32H750_INCLUDE_BOARD_H
+#define __BOARDS_ARM_STM32H7_WEACT_STM32H750_INCLUDE_BOARD_H
 
 /****************************************************************************
  * Included Files
  ****************************************************************************/
 
 #include <nuttx/config.h>
+
 #ifndef __ASSEMBLY__
 #  include <stdint.h>
 #endif
+
+/* Do not include STM32 H7 header files here */
 
 /****************************************************************************
  * Pre-processor Definitions
@@ -38,46 +41,161 @@
 
 /* Clocking *****************************************************************/
 
-/* On-board crystal frequency is 8MHz (HSE) */
-
-#define STM32_BOARD_XTAL        8000000ul
-
-/* PLL source is HSE/1, PLL multiplier is 9: PLL frequency is
- * 8MHz (XTAL) x 9 = 72MHz
+/* The WeAct STM32H750 board provides the following clock sources:
+ *
+ *   MCO: 8 MHz from MCO output of ST-LINK is used as input clock (default)
+ *   X2:  32.768 KHz crystal for LSE
+ *   X3:  HSE crystal oscillator (not provided)
+ *
+ * So we have these clock source available within the STM32
+ *
+ *   HSI: 16 MHz RC factory-trimmed
+ *   LSI: 32 KHz RC
+ *   HSE: 25 MHz crystal
+ *   LSE: 32.768 kHz
  */
 
-#define STM32_CFGR_PLLSRC       RCC_CFGR_PLLSRC
-#define STM32_CFGR_PLLXTPRE     0
-#define STM32_CFGR_PLLMUL       RCC_CFGR_PLLMUL_CLKx9
-#define STM32_PLL_FREQUENCY     (9*STM32_BOARD_XTAL)
+#define STM32_BOARD_XTAL        25000000ul
 
-/* Use the PLL and set the SYSCLK source to be the PLL */
+#define STM32_HSI_FREQUENCY     16000000ul
+#define STM32_LSI_FREQUENCY     32000
+#define STM32_HSE_FREQUENCY     STM32_BOARD_XTAL
+#define STM32_LSE_FREQUENCY     32768
 
-#define STM32_SYSCLK_SW         RCC_CFGR_SW_PLL
-#define STM32_SYSCLK_SWS        RCC_CFGR_SWS_PLL
-#define STM32_SYSCLK_FREQUENCY  STM32_PLL_FREQUENCY
+/* Main PLL Configuration.
+ *
+ * PLL source is HSE = 25,000,000
+ *
+ * When STM32_HSE_FREQUENCY / PLLM <= 2MHz VCOL must be selected.
+ * VCOH otherwise.
+ *
+ * PLL_VCOx = (STM32_HSE_FREQUENCY / PLLM) * PLLN
+ * Subject to:
+ *
+ *     1 <= PLLM <= 63
+ *     4 <= PLLN <= 512
+ *   150 MHz <= PLL_VCOL <= 420MHz
+ *   192 MHz <= PLL_VCOH <= 836MHz
+ *
+ * SYSCLK  = PLL_VCO / PLLP
+ * CPUCLK  = SYSCLK / D1CPRE
+ * Subject to
+ *
+ *   PLLP1   = {2, 4, 6, 8, ..., 128}
+ *   PLLP2,3 = {2, 3, 4, ..., 128}
+ *   CPUCLK <= 400 MHz
+ */
 
-/* AHB clock (HCLK) is SYSCLK (72MHz) */
+#define STM32_BOARD_USEHSE
 
-#define STM32_RCC_CFGR_HPRE     RCC_CFGR_HPRE_SYSCLK
-#define STM32_HCLK_FREQUENCY    STM32_PLL_FREQUENCY
+#define STM32_PLLCFG_PLLSRC      RCC_PLLCKSELR_PLLSRC_HSE
 
-/* APB2 clock (PCLK2) is HCLK (72MHz) */
+/* PLL1, wide 4 - 8 MHz input, enable DIVP, DIVQ, DIVR
+ *
+ *   PLL1_VCO = (25 MHz / 5) * 192 = 960 MHz
+ *
+ *   PLL1P = PLL1_VCO/2  = 800 MHz / 2   = 480 MHz
+ *   PLL1Q = PLL1_VCO/4  = 800 MHz / 4   = 240 MHz
+ *   PLL1R = PLL1_VCO/8  = 800 MHz / 4   = 240 MHz
+ */
 
-#define STM32_RCC_CFGR_PPRE2    RCC_CFGR_PPRE2_HCLK
-#define STM32_PCLK2_FREQUENCY   STM32_HCLK_FREQUENCY
+#define STM32_PLLCFG_PLL1CFG     (RCC_PLLCFGR_PLL1VCOSEL_WIDE | \
+                                  RCC_PLLCFGR_PLL1RGE_4_8_MHZ | \
+                                  RCC_PLLCFGR_DIVP1EN | \
+                                  RCC_PLLCFGR_DIVQ1EN | \
+                                  RCC_PLLCFGR_DIVR1EN)
 
-/* APB2 timers 1 and 8 will receive PCLK2. */
+#define STM32_VCO1_FREQUENCY     ((STM32_HSE_FREQUENCY / 5) * 192)
+#define STM32_PLL1P_FREQUENCY    (STM32_VCO1_FREQUENCY / 2)
+#define STM32_PLL1Q_FREQUENCY    (STM32_VCO1_FREQUENCY / 4)
+#define STM32_PLL1R_FREQUENCY    (STM32_VCO1_FREQUENCY / 4)
 
-#define STM32_APB2_TIM1_CLKIN   (STM32_PCLK2_FREQUENCY)
-#define STM32_APB2_TIM8_CLKIN   (STM32_PCLK2_FREQUENCY)
+#define STM32_PLLCFG_PLL1M       RCC_PLLCKSELR_DIVM1(5)
+#define STM32_PLLCFG_PLL1N       RCC_PLL1DIVR_N1(192)
+#define STM32_PLLCFG_PLL1P       RCC_PLL1DIVR_P1(2)
+#define STM32_PLLCFG_PLL1Q       RCC_PLL1DIVR_Q1(4)
+#define STM32_PLLCFG_PLL1R       RCC_PLL1DIVR_R1(4)
 
-/* APB1 clock (PCLK1) is HCLK/2 (36MHz) */
+/* PLL2, wide 4 - 8 MHz input, enable DIVP, DIVQ, DIVR
+ *
+ *   PLL1_VCO = (25 MHz / 2) * 48 = 600 MHz
+ *
+ *   PLL2P = PLL2_VCO/2  = 600 MHz / 8   = 75 MHz
+ *   PLL2Q = PLL2_VCO/4  = 600 MHz / 40  = 15 MHz
+ *   PLL2R = PLL2_VCO/8  = 600 MHz / 3   = 200 MHz
+ */
+#define STM32_PLLCFG_PLL2CFG (RCC_PLLCFGR_PLL2VCOSEL_WIDE | \
+                              RCC_PLLCFGR_PLL2RGE_4_8_MHZ | \
+                              RCC_PLLCFGR_DIVP2EN | \
+                              RCC_PLLCFGR_DIVQ2EN | \
+                              RCC_PLLCFGR_DIVR2EN )
 
-#define STM32_RCC_CFGR_PPRE1    RCC_CFGR_PPRE1_HCLKd2
-#define STM32_PCLK1_FREQUENCY   (STM32_HCLK_FREQUENCY/2)
+#define STM32_VCO2_FREQUENCY     ((STM32_HSE_FREQUENCY / 2) * 48)
+#define STM32_PLL2P_FREQUENCY    (STM32_VCO2_FREQUENCY / 8)
+#define STM32_PLL2Q_FREQUENCY    (STM32_VCO2_FREQUENCY / 40)
+#define STM32_PLL2R_FREQUENCY    (STM32_VCO2_FREQUENCY / 3)
 
-/* APB1 timers 2-7 will be twice PCLK1 */
+#define STM32_PLLCFG_PLL2M       RCC_PLLCKSELR_DIVM2(2)
+#define STM32_PLLCFG_PLL2N       RCC_PLL2DIVR_N2(48)
+#define STM32_PLLCFG_PLL2P       RCC_PLL2DIVR_P2(8)
+#define STM32_PLLCFG_PLL2Q       RCC_PLL2DIVR_Q2(40)
+#define STM32_PLLCFG_PLL2R       RCC_PLL2DIVR_R2(3)
+
+/* PLL3 */
+
+#define STM32_PLLCFG_PLL3CFG 0
+#define STM32_PLLCFG_PLL3M   0
+#define STM32_PLLCFG_PLL3N   0
+#define STM32_PLLCFG_PLL3P   0
+#define STM32_PLLCFG_PLL3Q   0
+#define STM32_PLLCFG_PLL3R   0
+
+#define STM32_VCO3_FREQUENCY
+#define STM32_PLL3P_FREQUENCY
+#define STM32_PLL3Q_FREQUENCY
+#define STM32_PLL3R_FREQUENCY
+
+/* SYSCLK = PLL1P = 480 MHz
+ * CPUCLK = SYSCLK / 1 = 480 MHz
+ */
+
+#define STM32_RCC_D1CFGR_D1CPRE  (RCC_D1CFGR_D1CPRE_SYSCLK)
+#define STM32_SYSCLK_FREQUENCY   (STM32_PLL1P_FREQUENCY)
+#define STM32_CPUCLK_FREQUENCY   (STM32_SYSCLK_FREQUENCY / 1)
+
+/* Configure Clock Assignments */
+
+/* AHB clock (HCLK) is SYSCLK/2 (480 MHz max)
+ * HCLK1 = HCLK2 = HCLK3 = HCLK4
+ */
+
+#define STM32_RCC_D1CFGR_HPRE   RCC_D1CFGR_HPRE_SYSCLKd2        /* HCLK  = SYSCLK / 2 */
+#define STM32_ACLK_FREQUENCY    (STM32_SYSCLK_FREQUENCY / 2)    /* ACLK in D1, HCLK3 in D1 */
+#define STM32_HCLK_FREQUENCY    (STM32_SYSCLK_FREQUENCY / 2)    /* HCLK in D2, HCLK4 in D3 */
+
+/* APB1 clock (PCLK1) is HCLK/2 (120 MHz) */
+
+#define STM32_RCC_D2CFGR_D2PPRE1  RCC_D2CFGR_D2PPRE1_HCLKd2       /* PCLK1 = HCLK / 2 */
+#define STM32_PCLK1_FREQUENCY     (STM32_HCLK_FREQUENCY/2)
+
+/* APB2 clock (PCLK2) is HCLK/2 (120 MHz) */
+
+#define STM32_RCC_D2CFGR_D2PPRE2  RCC_D2CFGR_D2PPRE2_HCLKd2       /* PCLK2 = HCLK / 2 */
+#define STM32_PCLK2_FREQUENCY     (STM32_HCLK_FREQUENCY/2)
+
+/* APB3 clock (PCLK3) is HCLK/2 (120 MHz) */
+
+#define STM32_RCC_D1CFGR_D1PPRE   RCC_D1CFGR_D1PPRE_HCLKd2        /* PCLK3 = HCLK / 2 */
+#define STM32_PCLK3_FREQUENCY     (STM32_HCLK_FREQUENCY/2)
+
+/* APB4 clock (PCLK4) is HCLK/2 (120 MHz) */
+
+#define STM32_RCC_D3CFGR_D3PPRE   RCC_D3CFGR_D3PPRE_HCLKd2       /* PCLK4 = HCLK / 2 */
+#define STM32_PCLK4_FREQUENCY     (STM32_HCLK_FREQUENCY/2)
+
+/* Timer clock frequencies */
+
+/* Timers driven from APB1 will be twice PCLK1 */
 
 #define STM32_APB1_TIM2_CLKIN   (2*STM32_PCLK1_FREQUENCY)
 #define STM32_APB1_TIM3_CLKIN   (2*STM32_PCLK1_FREQUENCY)
@@ -85,143 +203,172 @@
 #define STM32_APB1_TIM5_CLKIN   (2*STM32_PCLK1_FREQUENCY)
 #define STM32_APB1_TIM6_CLKIN   (2*STM32_PCLK1_FREQUENCY)
 #define STM32_APB1_TIM7_CLKIN   (2*STM32_PCLK1_FREQUENCY)
+#define STM32_APB1_TIM12_CLKIN  (2*STM32_PCLK1_FREQUENCY)
+#define STM32_APB1_TIM13_CLKIN  (2*STM32_PCLK1_FREQUENCY)
+#define STM32_APB1_TIM14_CLKIN  (2*STM32_PCLK1_FREQUENCY)
 
-/* USB divider -- Divide PLL clock by 1.5 */
+/* Timers driven from APB2 will be twice PCLK2 */
 
-#define STM32_CFGR_USBPRE       0
+#define STM32_APB2_TIM1_CLKIN   (2*STM32_PCLK2_FREQUENCY)
+#define STM32_APB2_TIM8_CLKIN   (2*STM32_PCLK2_FREQUENCY)
+#define STM32_APB2_TIM15_CLKIN  (2*STM32_PCLK2_FREQUENCY)
+#define STM32_APB2_TIM16_CLKIN  (2*STM32_PCLK2_FREQUENCY)
+#define STM32_APB2_TIM17_CLKIN  (2*STM32_PCLK2_FREQUENCY)
 
-/* Timer Frequencies, if APBx is set to 1, frequency is same to APBx
- * otherwise frequency is 2xAPBx.
- * Note: TIM1,8 are on APB2, others on APB1
- */
-
-#define BOARD_TIM1_FREQUENCY    STM32_HCLK_FREQUENCY
-#define BOARD_TIM2_FREQUENCY    STM32_PCLK1_FREQUENCY
-#define BOARD_TIM3_FREQUENCY    STM32_PCLK1_FREQUENCY
-#define BOARD_TIM4_FREQUENCY    STM32_PCLK1_FREQUENCY
-#define BOARD_TIM5_FREQUENCY    STM32_PCLK1_FREQUENCY
-#define BOARD_TIM6_FREQUENCY    STM32_PCLK1_FREQUENCY
-#define BOARD_TIM7_FREQUENCY    STM32_PCLK1_FREQUENCY
-#define BOARD_TIM8_FREQUENCY    STM32_HCLK_FREQUENCY
-
-/* SDIO dividers.  Note that slower clocking is required when DMA is disabled
- * in order to avoid RX overrun/TX underrun errors due to delayed responses
- * to service FIFOs in interrupt driven mode.  These values have not been
- * tuned!!!
+/* Kernel Clock Configuration
  *
- * HCLK=72MHz, SDIOCLK=72MHz, SDIO_CK=HCLK/(178+2)=400 KHz
+ * Note: look at Table 54 in ST Manual
  */
 
-#define SDIO_INIT_CLKDIV        (178 << SDIO_CLKCR_CLKDIV_SHIFT)
+/* I2C123 clock source - HSI */
 
-/* DMA ON:  HCLK=72 MHz, SDIOCLK=72MHz, SDIO_CK=HCLK/(2+2)=18 MHz
- * DMA OFF: HCLK=72 MHz, SDIOCLK=72MHz, SDIO_CK=HCLK/(3+2)=14.4 MHz
+#define STM32_RCC_D2CCIP2R_I2C123SRC RCC_D2CCIP2R_I2C123SEL_HSI
+
+/* I2C4 clock source - HSI */
+
+#define STM32_RCC_D3CCIPR_I2C4SRC    RCC_D3CCIPR_I2C4SEL_HSI
+
+/* SPI123 clock source - PLL1Q */
+
+#define STM32_RCC_D2CCIP1R_SPI123SRC RCC_D2CCIP1R_SPI123SEL_PLL1
+
+/* SPI45 clock source - APB (PCLK2?) */
+
+#define STM32_RCC_D2CCIP1R_SPI45SRC  RCC_D2CCIP1R_SPI45SEL_APB
+
+/* SPI6 clock source - APB (PCLK4) */
+
+#define STM32_RCC_D3CCIPR_SPI6SRC    RCC_D3CCIPR_SPI6SEL_PCLK4
+
+/* USB 1 and 2 clock source - HSI48 */
+
+#define STM32_RCC_D2CCIP2R_USBSRC    RCC_D2CCIP2R_USBSEL_HSI48
+
+/* ADC 1 2 3 clock source - pll2_pclk */
+
+#define STM32_RCC_D3CCIPR_ADCSRC     RCC_D3CCIPR_ADCSEL_PLL2
+
+/* FLASH wait states
+ *
+ *  ------------ ---------- -----------
+ *  Vcore        MAX ACLK   WAIT STATES
+ *  ------------ ---------- -----------
+ *  1.15-1.26 V     70 MHz    0
+ *  (VOS1 level)   140 MHz    1
+ *                 210 MHz    2
+ *  1.05-1.15 V     55 MHz    0
+ *  (VOS2 level)   110 MHz    1
+ *                 165 MHz    2
+ *                 220 MHz    3
+ *  0.95-1.05 V     45 MHz    0
+ *  (VOS3 level)    90 MHz    1
+ *                 135 MHz    2
+ *                 180 MHz    3
+ *                 225 MHz    4
+ *  ------------ ---------- -----------
  */
 
-#ifdef CONFIG_SDIO_DMA
-#  define SDIO_MMCXFR_CLKDIV    (2 << SDIO_CLKCR_CLKDIV_SHIFT)
-#else
-#  define SDIO_MMCXFR_CLKDIV    (3 << SDIO_CLKCR_CLKDIV_SHIFT)
-#endif
+#define BOARD_FLASH_WAITSTATES 4
 
-/* DMA ON:  HCLK=72 MHz, SDIOCLK=72MHz, SDIO_CK=HCLK/(1+2)=24 MHz
- * DMA OFF: HCLK=72 MHz, SDIOCLK=72MHz, SDIO_CK=HCLK/(3+2)=14.4 MHz
+/* SDMMC definitions ********************************************************/
+
+/* Init 400 kHz, PLL1Q/(2*300) = 240 MHz / (2*300) = 400 Khz */
+
+#define STM32_SDMMC_INIT_CLKDIV     (300 << STM32_SDMMC_CLKCR_CLKDIV_SHIFT)
+
+/* Just set these to 24 MHz for now,
+ * PLL1Q/(2*5) = 240 MHz / (2*5) = 24 MHz
  */
 
-#ifdef CONFIG_SDIO_DMA
-#  define SDIO_SDXFR_CLKDIV     (1 << SDIO_CLKCR_CLKDIV_SHIFT)
-#else
-#  define SDIO_SDXFR_CLKDIV     (3 << SDIO_CLKCR_CLKDIV_SHIFT)
-#endif
+#define STM32_SDMMC_MMCXFR_CLKDIV   (5 << STM32_SDMMC_CLKCR_CLKDIV_SHIFT)
+#define STM32_SDMMC_SDXFR_CLKDIV    (5 << STM32_SDMMC_CLKCR_CLKDIV_SHIFT)
 
-/* BUTTON definitions *******************************************************/
-
-#define NUM_BUTTONS       1
-
-#define BUTTON_USER1      0
-#define BUTTON_USER1_BIT  (1 << BUTTON_USER1)
+#define STM32_SDMMC_CLKCR_EDGE      STM32_SDMMC_CLKCR_NEGEDGE
 
 /* LED definitions **********************************************************/
 
-/* Define how many LEDs this board has (needed by userleds) */
+/* The board has 1 user LED that could be used this diagnostic LED too.
+ *
+ * If CONFIG_ARCH_LEDS is not defined, then the user can control the LEDs in
+ * any way.
+ * The following definitions are used to access individual LEDs.
+ */
 
+/* LED index values for use with board_userled() */
+
+#define BOARD_LED1        0
 #define BOARD_NLEDS       1
 
-/* The board has only one controllable LED */
+/* LED bits for use with board_userled_all() */
 
-#define LED_STARTED       0  /* No LEDs */
-#define LED_HEAPALLOCATE  1  /* LED1 on */
-#define LED_IRQSENABLED   2  /* LED2 on */
-#define LED_STACKCREATED  3  /* LED1 on */
-#define LED_INIRQ         4  /* LED1 off */
-#define LED_SIGNAL        5  /* LED2 on */
-#define LED_ASSERTION     6  /* LED1 + LED2 */
-#define LED_PANIC         7  /* LED1 / LED2 blinking */
+#define BOARD_LED1_BIT    (1 << BOARD_LED1)
 
-/* PWM
+/* If CONFIG_ARCH_LEDS is defined, the usage by the board port is defined in
+ * include/board.h and src/stm32_leds.c.
+ * The LEDs are used to encode OS-related events as follows:
  *
- * The STM32F103-Minimum has no real on-board PWM devices, but the board can
- * be configured to output a pulse train using TIM3 CH3 on PB0.
  *
- * Note: we don't need redefine GPIO_TIM3_CH3OUT because PB0 is not
- * remap pin.
+ *   SYMBOL                     Meaning                      LED state
+ *                                                        Red   Green Blue
+ *   ----------------------  --------------------------  ------ ------ ---
  */
 
-/* RGB LED
- *
- * R = TIM1 CH1 on PA8 | G = TIM2 CH2 on PA1 | B = TIM4 CH4 on PB9
- *
- * Note: Pin boards: GPIO_TIM1_CH1OUT ; GPIO_TIM2_CH2OUT ; GPIO_TIM4_CH4OUT
+#define LED_STARTED        0 /* NuttX has been started   OFF    OFF   OFF  */
+#define LED_HEAPALLOCATE   1 /* Heap has been allocated  OFF    OFF   ON   */
+#define LED_IRQSENABLED    2 /* Interrupts enabled       OFF    ON    OFF  */
+#define LED_STACKCREATED   3 /* Idle stack created       OFF    ON    ON   */
+#define LED_INIRQ          4 /* In an interrupt          N/C    N/C   GLOW */
+#define LED_SIGNAL         5 /* In a signal handler      N/C    GLOW  N/C  */
+#define LED_ASSERTION      6 /* An assertion failed      GLOW   N/C   GLOW */
+#define LED_PANIC          7 /* The system has crashed   Blink  OFF   N/C  */
+#define LED_IDLE           8 /* MCU is is sleep mode     ON     OFF   OFF  */
+
+/* Thus if the Green LED is statically on, NuttX has successfully booted and
+ * is, apparently, running normally.  If the Red LED is flashing at
+ * approximately 2Hz, then a fatal error has been detected and the system
+ * has halted.
  */
 
-#define RGBLED_RPWMTIMER   1
-#define RGBLED_RPWMCHANNEL 1
-#define RGBLED_GPWMTIMER   2
-#define RGBLED_GPWMCHANNEL 2
-#define RGBLED_BPWMTIMER   4
-#define RGBLED_BPWMCHANNEL 4
+/* Button definitions *******************************************************/
 
-/* Tone Driver **************************************************************/
+/* The WeAct-STM32H750 board has two user buttons */
 
-#define BOARD_TONE_PWM_TIM         2   /* PWM timer for tone generation  */
-#define BOARD_TONE_ONESHOT_TIM     3   /* Oneshot timer for note timings */
-#define BOARD_TONE_ONESHOT_TIM_RES 10  /* Oneshot timer resolution (us)  */
+/* Alternate function pin selections ****************************************/
 
-/* NRF24L01 Driver **********************************************************/
+/* USART1 (Serial Console) */
 
-/* Chip enable:  PB.1 */
+#define GPIO_USART1_RX   (GPIO_USART1_RX_1 | GPIO_SPEED_100MHz)  /* PB15 */
+#define GPIO_USART1_TX   (GPIO_USART1_TX_1 | GPIO_SPEED_100MHz)  /* PB14 */
 
-#define GPIO_NRF24L01_CE  (GPIO_OUTPUT|GPIO_CNF_OUTPP|GPIO_MODE_50MHz|\
-                           GPIO_OUTPUT_CLEAR|GPIO_PORTB|GPIO_PIN1)
+/* OTGFS */
 
-/* IRQ line:  PA.0 */
+#define GPIO_OTGFS_DM  (GPIO_OTGFS_DM_0|GPIO_SPEED_100MHz) /* PA11 */
+#define GPIO_OTGFS_DP  (GPIO_OTGFS_DP_0|GPIO_SPEED_100MHz) /* PA12 */
+#define GPIO_OTGFS_ID  (GPIO_OTGFS_ID_0|GPIO_SPEED_100MHz) /* PA10 */
 
-#define GPIO_NRF24L01_IRQ (GPIO_INPUT|GPIO_CNF_INFLOAT|GPIO_PORTA|GPIO_PIN0)
+/****************************************************************************
+ * Public Data
+ ****************************************************************************/
 
-#define BOARD_NRF24L01_GPIO_CE     GPIO_NRF24L01_CE
-#define BOARD_NRF24L01_GPIO_IRQ    GPIO_NRF24L01_IRQ
+#ifndef __ASSEMBLY__
 
-/* HCSR04 driver */
+#undef EXTERN
+#if defined(__cplusplus)
+#define EXTERN extern "C"
+extern "C"
+{
+#else
+#define EXTERN extern
+#endif
 
-/* Pins config to use with HC-SR04 sensor */
+/****************************************************************************
+ * Public Function Prototypes
+ ****************************************************************************/
 
-#define GPIO_HCSR04_INT   (GPIO_INPUT|GPIO_CNF_INFLOAT|GPIO_PORTA|GPIO_PIN0)
-#define GPIO_HCSR04_TRIG  (GPIO_OUTPUT|GPIO_CNF_OUTPP|GPIO_MODE_50MHz|\
-                           GPIO_OUTPUT_CLEAR|GPIO_PORTA|GPIO_PIN1)
+#undef EXTERN
+#if defined(__cplusplus)
+}
+#endif
 
-#define BOARD_HCSR04_GPIO_INT  GPIO_HCSR04_INT
-#define BOARD_HCSR04_GPIO_TRIG GPIO_HCSR04_TRIG
-#define BOARD_HCSR04_FRTIMER   1    /* TIM1 as free running timer */
-
-/* Pin for APDS-9960 sensor */
-
-#define GPIO_APDS9960_INT (GPIO_INPUT|GPIO_CNF_INFLOAT|GPIO_PORTA|GPIO_PIN0)
-
-#define BOARD_APDS9960_GPIO_INT GPIO_APDS9960_INT
-
-/* ZERO CROSS pin definition */
-
-#define BOARD_ZEROCROSS_GPIO \
-  (GPIO_INPUT|GPIO_CNF_INFLOAT|GPIO_PORTA|GPIO_PIN0)
-
-#endif /* __BOARDS_ARM_STM32_WEACTSTM32F103_INCLUDE_BOARD_H */
+#endif /* __ASSEMBLY__ */
+#endif /* __BOARDS_ARM_STM32H7_WEACT_STM32H750_INCLUDE_BOARD_H */
