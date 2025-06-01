@@ -55,3 +55,7 @@ dkms.conf
 *.built
 *.depend
 *.dep
+
+# Bear output
+.cache/
+*.json
