@@ -55,6 +55,7 @@ dkms.conf
 *.built
 *.depend
 *.dep
+.kconfig
 
 # Bear output
 .cache/
