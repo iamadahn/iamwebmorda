@@ -1,0 +1,3 @@
+ifeq ($(CONFIG_HEARTBEAT_DAEMON), y)
+CONFIGURED_APPS += $(APPDIR)/modules/heartbeat_daemon
+endif

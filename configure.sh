@@ -1,8 +1,8 @@
 cd nuttx-apps
-ln -s ../app heartbeat_daemon
+ln -s ../modules modules
 cd ../nuttx
 make distclean
 ./tools/configure.sh -l ../board/configs/iamwebmorda
 cd ../nuttx-apps
-rm -rf heartbeat_daemon
+rm -rf modules
 

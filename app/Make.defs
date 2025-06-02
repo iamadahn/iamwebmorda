@@ -1,3 +1,0 @@
-ifeq ($(CONFIG_HEARTBEAT_DAEMON), y)
-CONFIGURED_APPS += $(APPDIR)/heartbeat_daemon
-endif

@@ -61,10 +61,10 @@ int main(int argc, FAR char *argv[])
     }
 
     int ret = task_create(CONFIG_HEARTBEAT_DAEMON_PROGNAME,
-                           CONFIG_HEARTBEAT_DAEMON_PRIORITY,
-                           CONFIG_HEARTBEAT_DAEMON_STACKSIZE,
-                           heartbeat_daemon,
-                           NULL);
+                          CONFIG_HEARTBEAT_DAEMON_PRIORITY,
+                          CONFIG_HEARTBEAT_DAEMON_STACKSIZE,
+                          heartbeat_daemon,
+                          NULL);
 
     if (ret < 0) {
         int errcode = errno;
