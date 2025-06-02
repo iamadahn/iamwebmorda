@@ -53,22 +53,22 @@ static int heartbeat_daemon(int argc, char *argv[])
 
 int main(int argc, FAR char *argv[])
 {
-    printf("heartbeat_main: Starting heartbeat led daemon.\n");
+    printf("heartbeat_daemon_main: Starting heartbeat led daemon.\n");
 
     if (g_heartbeat_started) {
-        printf("heartbeat_main: heartbeat led daemon is already running\n");
+        printf("heartbeat_daemon_main: heartbeat led daemon is already running\n");
         return EXIT_SUCCESS;
     }
 
-    int ret = task_create("heartbeat_daemon",
-                           CONFIG_CUSTOM_APP_PRIORITY,
-                           CONFIG_CUSTOM_APP_STACKSIZE,
+    int ret = task_create(CONFIG_HEARTBEAT_DAEMON_PROGNAME,
+                           CONFIG_HEARTBEAT_DAEMON_PRIORITY,
+                           CONFIG_HEARTBEAT_DAEMON_STACKSIZE,
                            heartbeat_daemon,
                            NULL);
 
     if (ret < 0) {
         int errcode = errno;
-        printf("heartbeat_main: Failed to create heartbeat_daemon: %d.\n", errcode);
+        printf("heartbeat_daemon_main: Failed to create heartbeat_daemon: %d.\n", errcode);
         return EXIT_FAILURE;
     }
 
