@@ -5,6 +5,7 @@ PRIORITY = $(CONFIG_HEARTBEAT_DAEMON_PRIORITY)
 STACKSIZE = $(CONFIG_HEARTBEAT_DAEMON_STACKSIZE)
 MODULE = $(CONFIG_HEARTBEAT_DAEMON)
 
-MAINSRC = heartbeat_daemon_main.c
+CXXEXT = .cpp
+MAINSRC = heartbeat_daemon_main.cpp
 
 include $(APPDIR)/Application.mk

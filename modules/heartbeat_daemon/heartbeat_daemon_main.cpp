@@ -1,5 +1,4 @@
 #include <nuttx/config.h>
-
 #include <sched.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -21,7 +20,7 @@ static int heartbeat_daemon(int argc, char *argv[])
     g_heartbeat_started = true;
     printf("heartbeat_daemon: Running.\n");
 
-    char *fd_path = "/dev/userleds";
+    const char *fd_path = "/dev/userleds";
     int fd = open(fd_path, O_WRONLY);
     if (fd < 0) {
         int errcode = errno;
@@ -51,7 +50,7 @@ static int heartbeat_daemon(int argc, char *argv[])
     return EXIT_SUCCESS;
 }
 
-int main(int argc, FAR char *argv[])
+extern "C" int main(int argc, FAR char *argv[])
 {
     printf("heartbeat_daemon_main: Starting heartbeat led daemon.\n");
 
