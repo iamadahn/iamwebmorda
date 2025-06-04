@@ -56,6 +56,7 @@ dkms.conf
 *.depend
 *.dep
 .kconfig
+etctmp.c
 
 # Bear output
 .cache/
