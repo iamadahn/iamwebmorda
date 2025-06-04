@@ -59,9 +59,9 @@ extern "C" int main(int argc, FAR char *argv[])
         return EXIT_SUCCESS;
     }
 
-    int ret = task_create(CONFIG_HEARTBEAT_DAEMON_PROGNAME,
-                          CONFIG_HEARTBEAT_DAEMON_PRIORITY,
-                          CONFIG_HEARTBEAT_DAEMON_STACKSIZE,
+    int ret = task_create(CONFIG_MODULES_HEARTBEAT_DAEMON_PROGNAME,
+                          CONFIG_MODULES_HEARTBEAT_DAEMON_PRIORITY,
+                          CONFIG_MODULES_HEARTBEAT_DAEMON_STACKSIZE,
                           heartbeat_daemon,
                           NULL);
 
