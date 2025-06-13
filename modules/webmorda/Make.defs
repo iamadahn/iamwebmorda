@@ -1,0 +1,3 @@
+ifeq ($(CONFIG_MODULES_WEBMORDA), y)
+CONFIGURED_APPS += $(APPDIR)/modules/webmorda
+endif
