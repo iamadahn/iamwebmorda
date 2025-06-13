@@ -1,9 +1,12 @@
 #include <cstdlib>
+#include <netinet/in.h>
 #include <nuttx/config.h>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netdb.h>
+
+#include "networking/listening_socket.hpp"
 
 extern "C" int main(int argc, FAR char *argv[])
 {
@@ -21,6 +24,8 @@ extern "C" int main(int argc, FAR char *argv[])
         return EXIT_FAILURE;
     }
 
+    auto sock = webmorda::ListeningSocket(AF_INET, SOCK_STREAM, 0, 80, INADDR_ANY, 1);
+    printf("Socket fd - %d, connection statis - %d", sock.getSocket(), sock.getConnection());
 
     return EXIT_SUCCESS;
 }
