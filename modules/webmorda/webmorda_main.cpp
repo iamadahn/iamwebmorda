@@ -5,8 +5,9 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netdb.h>
+#include <unistd.h>
 
-#include "networking/listening_socket.hpp"
+#include "networking/server.hpp"
 
 extern "C" int main(int argc, FAR char *argv[])
 {
@@ -18,14 +19,17 @@ extern "C" int main(int argc, FAR char *argv[])
     hints.ai_socktype = SOCK_STREAM;
 
     int ret = getaddrinfo("google.com", "80", &hints, &res);
-    printf("getaddrinfo status: %d\n", ret);
     if (ret != 0) {
         printf("Unable to resolve adress, quitting\n");
         return EXIT_FAILURE;
     }
 
-    auto sock = webmorda::ListeningSocket(AF_INET, SOCK_STREAM, 0, 80, INADDR_ANY, 1);
-    printf("Socket fd - %d, connection statis - %d", sock.getSocket(), sock.getConnection());
+    auto server = webmorda::Server(AF_INET, SOCK_STREAM, 0, 80, INADDR_ANY, 1);
+
+    while(true) {
+        server.handle();
+        usleep(100 * 1000);
+    }
 
     return EXIT_SUCCESS;
 }
