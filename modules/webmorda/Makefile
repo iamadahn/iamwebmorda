@@ -8,7 +8,7 @@ MODULE = $(CONFIG_MODULES_WEBMORDA)
 CXXEXT = .cpp
 MAINSRC = webmorda_main.cpp
 
-MAINSRC += networking/server.cpp
+MAINSRC += networking/single_client_server.cpp
 MAINSRC += networking/sockets/simple_socket.cpp
 MAINSRC += networking/sockets/listening_socket.cpp
 MAINSRC += networking/sockets/binding_socket.cpp
