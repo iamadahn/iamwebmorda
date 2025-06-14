@@ -11,8 +11,6 @@
 
 extern "C" int main(int argc, FAR char *argv[])
 {
-    printf("webmorda\n");
-
     struct addrinfo hints, *res;
 
     hints.ai_family = AF_INET;

@@ -18,7 +18,6 @@ static int heartbeat_daemon(int argc, char *argv[])
     int ret;
 
     g_heartbeat_started = true;
-    printf("heartbeat_daemon: Running.\n");
 
     const char *fd_path = "/dev/userleds";
     int fd = open(fd_path, O_WRONLY);
@@ -52,8 +51,6 @@ static int heartbeat_daemon(int argc, char *argv[])
 
 extern "C" int main(int argc, FAR char *argv[])
 {
-    printf("heartbeat_daemon_main: Starting heartbeat led daemon.\n");
-
     if (g_heartbeat_started) {
         printf("heartbeat_daemon_main: heartbeat led daemon is already running\n");
         return EXIT_SUCCESS;
