@@ -10,15 +10,14 @@ class SimpleSocket
 private:
     struct sockaddr_in _address;
     int _sock;
-    int _connection;
+    bool _sock_state;
 
-public:
+protected:
     SimpleSocket(int domain, int type, int protocol, int port, unsigned long interface);
+    int getSocket(void);
+    bool getSocketState(void);
+    struct sockaddr_in getAddress(void);
     virtual int connectToNetwork(int sock, struct sockaddr_in address) = 0;
-    struct sockaddr_in getAddress();
-    int getSocket();
-    int getConnection();
-    void setConnection(int connection);
 };
 
 }

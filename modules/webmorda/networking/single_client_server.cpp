@@ -1,24 +1,36 @@
 #include "single_client_server.hpp"
 #include "sockets/listening_socket.hpp"
-#include <cstring>
+
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
-#include <cstdlib>
 #include <stdio.h>
+#include <string.h>
 
 using namespace webmorda;
 
 SingleClientServer::SingleClientServer(int domain, int type, int protocol, int port, unsigned long interface, int backlog) : ListeningSocket(domain, type, protocol, port, interface, backlog)
 {
-    _client_fd = accept(getSocket(), (struct sockaddr *)&_client_address, &_client_address_len);
-    if (_client_fd < 0) {
-        exit(EXIT_FAILURE);
+    if (!getBindState()) {
+        _state = false;
+        return;
     }
+
+    _client_connected = false;
+    _state = true;
 }
 
-void SingleClientServer::handle()
+bool SingleClientServer::getState(void)
 {
+    return _state;
+}
+
+void SingleClientServer::handle(void)
+{
+    if (!_client_connected) {
+        acceptClient();
+    }
+
     read(_client_fd, _buffer, _buffer_size);
     printf("%s", _buffer);
     bzero(_buffer, _buffer_size);
@@ -29,4 +41,17 @@ void SingleClientServer::handle()
                   "Hello, NuttX!";
 
     write(_client_fd, response, strlen(response));
+}
+
+void SingleClientServer::acceptClient(void)
+{
+    struct sockaddr_in client_address;
+    socklen_t client_address_len;
+
+    _client_fd = accept(getSocket(), (struct sockaddr *)&client_address, &client_address_len);
+    if (_client_fd < 0) {
+        _client_connected = true;
+    } else {
+        _client_connected = false;
+    }
 }

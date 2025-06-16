@@ -8,8 +8,12 @@ namespace webmorda
 
 class BindingSocket: public SimpleSocket
 {
-public:
+private:
+    bool _bind_state;
+
+protected:
     BindingSocket(int domain, int type, int protocol, int port, unsigned long interface);
+    bool getBindState(void);
     int connectToNetwork(int sock, struct sockaddr_in address);
 };
 

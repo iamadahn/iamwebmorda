@@ -12,13 +12,17 @@ class SingleClientServer : public ListeningSocket
 private:
     static const int _buffer_size = 4096;
     int _client_fd;
-    struct sockaddr_in _client_address;
-    socklen_t _client_address_len;
     unsigned char _buffer[_buffer_size];
+    bool _state;
+    bool _client_connected;
+
+    void acceptClient(void);
 
 public:
     SingleClientServer(int domain, int type, int protocol, int port, unsigned long interface, int backlog);
-    void handle();
+    bool isClientConnected(void);
+    bool getState(void);
+    void handle(void);
 };
 
 }

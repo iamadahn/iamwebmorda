@@ -1,5 +1,5 @@
 #include "simple_socket.hpp"
-#include <cstdlib>
+
 #include <netinet/in.h>
 #include <sys/socket.h>
 
@@ -15,26 +15,23 @@ SimpleSocket::SimpleSocket(int domain, int type, int protocol, int port, unsigne
     // Create socket
     _sock = socket(domain, type, protocol);
     if (_sock < 0) {
-        exit(EXIT_FAILURE);
+        _sock_state = false;
+    } else {
+        _sock_state = true;
     }
 }
 
-struct sockaddr_in SimpleSocket::getAddress()
+bool SimpleSocket::getSocketState(void)
+{
+    return _sock_state;
+}
+
+struct sockaddr_in SimpleSocket::getAddress(void)
 {
     return _address;
 }
 
-int SimpleSocket::getSocket()
+int SimpleSocket::getSocket(void)
 {
     return _sock;
-}
-
-int SimpleSocket::getConnection()
-{
-    return _connection;
-}
-
-void SimpleSocket::setConnection(int conn)
-{
-    _connection = conn;
 }
