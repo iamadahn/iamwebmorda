@@ -28,7 +28,7 @@ extern "C" int main(int argc, FAR char *argv[])
         return EXIT_FAILURE;
     }
 
-    while(true) {
+    while (true) {
         server.handle();
         usleep(100 * 1000);
     }

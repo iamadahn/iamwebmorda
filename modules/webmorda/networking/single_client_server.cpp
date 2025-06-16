@@ -11,7 +11,7 @@ using namespace webmorda;
 
 SingleClientServer::SingleClientServer(int domain, int type, int protocol, int port, unsigned long interface, int backlog) : ListeningSocket(domain, type, protocol, port, interface, backlog)
 {
-    if (!getBindState()) {
+    if (!getListeningState()) {
         _state = false;
         return;
     }
