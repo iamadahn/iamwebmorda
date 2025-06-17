@@ -1,6 +1,7 @@
 #include "single_client_server.hpp"
 #include "sockets/listening_socket.hpp"
 
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -31,7 +32,8 @@ void SingleClientServer::handle(void)
         acceptClient();
     }
 
-    read(_client_fd, _buffer, _buffer_size);
+    int ret = read(_client_fd, _buffer, _buffer_size);
+
     printf("%s", _buffer);
     bzero(_buffer, _buffer_size);
     char response[] = "HTTP/1.1 200 OK\r\n"
@@ -45,13 +47,10 @@ void SingleClientServer::handle(void)
 
 void SingleClientServer::acceptClient(void)
 {
-    struct sockaddr_in client_address;
-    socklen_t client_address_len;
-
-    _client_fd = accept(getSocket(), (struct sockaddr *)&client_address, &client_address_len);
+    _client_fd = accept(getSocket(), (struct sockaddr *)&_client_address, &_client_address_len);
     if (_client_fd < 0) {
-        _client_connected = true;
-    } else {
         _client_connected = false;
+    } else {
+        _client_connected = true;
     }
 }

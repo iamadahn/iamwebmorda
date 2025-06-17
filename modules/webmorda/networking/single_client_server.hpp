@@ -10,8 +10,11 @@ namespace webmorda
 class SingleClientServer : public ListeningSocket
 {
 private:
-    static const int _buffer_size = 4096;
     int _client_fd;
+    struct sockaddr_in _client_address;
+    socklen_t _client_address_len;
+
+    static const int _buffer_size = 4096;
     unsigned char _buffer[_buffer_size];
     bool _state;
     bool _client_connected;

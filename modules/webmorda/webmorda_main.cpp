@@ -1,7 +1,6 @@
-#include <cstdlib>
+#include <stdio.h>
 #include <netinet/in.h>
 #include <nuttx/config.h>
-#include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netdb.h>
@@ -21,6 +20,8 @@ extern "C" int main(int argc, FAR char *argv[])
         printf("Unable to resolve adress, quitting\n");
         return EXIT_FAILURE;
     }
+
+    usleep(100 * 1000);
 
     auto server = webmorda::SingleClientServer(AF_INET, SOCK_STREAM, 0, 80, INADDR_ANY, 1);
     if (!server.getState()) {
