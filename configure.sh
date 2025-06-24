@@ -1,8 +1,6 @@
 cd nuttx-apps
-ln -s ../modules modules
-cd ../nuttx
-make distclean
-./tools/configure.sh -l ../board/configs/iamwebmorda
-cd ../nuttx-apps
-rm -rf modules
+ln -s ../modules external
+cd ..
+cmake nuttx -B build -DBOARD_CONFIG=../board/configs/iamwebmorda -GNinja
+rm nuttx-apps/external
 

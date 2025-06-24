@@ -51,13 +51,14 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# Nuttx build dependencies 
+# Nuttx build dependencies
 *.built
 *.depend
 *.dep
 .kconfig
 etctmp.c
 modules/Kconfig
+build/
 
 # Bear output
 .cache/

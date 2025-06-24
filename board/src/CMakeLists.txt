@@ -32,11 +32,21 @@ if(CONFIG_BOARDCTL)
   list(APPEND SRCS stm32_appinitialize.c)
 endif()
 
+if(CONFIG_ETC_ROMFS)
+  nuttx_add_romfs(
+    NAME
+    etc
+    MOUNTPOINT
+    etc
+    RCSRCS
+    etc/init.d/rc.sysinit
+    etc/init.d/rcS
+    PATH
+    ${CMAKE_CURRENT_BINARY_DIR}/etc)
+
+  target_link_libraries(board PRIVATE romfs_etc)
+endif()
+
 target_sources(board PRIVATE ${SRCS})
 
-if(NOT CONFIG_BUILD_FLAT)
-  add_subdirectory(${NUTTX_BOARD_DIR}/kernel)
-  set_property(
-    GLOBAL PROPERTY LD_SCRIPT_USER ${NUTTX_BOARD_DIR}/scripts/memory.ld
-                    ${NUTTX_BOARD_DIR}/scripts/user-space.ld)
-endif()
+set_property(GLOBAL PROPERTY LD_SCRIPT "${NUTTX_BOARD_DIR}/scripts/flash.ld")
