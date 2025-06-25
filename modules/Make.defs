@@ -1,1 +1,0 @@
-include $(wildcard $(APPDIR)/modules/*/Make.defs)

@@ -37,10 +37,10 @@ void SingleClientServer::handle(void)
     printf("%s", _buffer);
     bzero(_buffer, _buffer_size);
     char response[] = "HTTP/1.1 200 OK\r\n"
-                  "Content-Type: text/html\r\n"
-                  "Content-Length: 13\r\n"
-                  "\r\n"
-                  "Hello, NuttX!";
+                      "Content-Type: text/html\r\n"
+                      "Content-Length: 13\r\n"
+                      "\r\n"
+                      "Hello, NuttX!";
 
     write(_client_fd, response, strlen(response));
 }

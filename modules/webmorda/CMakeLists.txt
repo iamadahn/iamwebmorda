@@ -19,5 +19,13 @@ if(CONFIG_MODULES_WEBMORDA)
         ${CONFIG_MODULES_WEBMORDA}
         SRCS
         ${SOURCES})
+
+    nuttx_add_cromfs(
+        NAME
+        web-interface
+        PATH
+        ${CMAKE_CURRENT_SOURCE_DIR}/web-interface)
+
+    target_link_libraries(apps PRIVATE cromfs_web-interface)
 endif()
 
