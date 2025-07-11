@@ -12,7 +12,7 @@
 #include "stm32_gpio.h"
 #include "stm32_sdmmc.h"
 
-#include "meteostation.h"
+#include "weact-stm32h750.h"
 
 /****************************************************************************
  * Pre-processor Definitions

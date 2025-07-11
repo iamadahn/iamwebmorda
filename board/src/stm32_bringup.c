@@ -75,5 +75,21 @@ int stm32_bringup(void)
     }
 #endif
 
+#ifdef CONFIG_FAT_DMAMEMORY
+  ret = stm32_dma_alloc_init();
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: Failed to initialize DMA allocator: %d\n", ret);
+    }
+#endif
+
+#ifdef CONFIG_MMCSD_SDIO
+  ret = stm32_sdio_initialize();
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: Failed to initialize MMC/SD driver: %d\n", ret);
+    }
+#endif
+
   return OK;
 }

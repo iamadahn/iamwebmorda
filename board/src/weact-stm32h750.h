@@ -113,7 +113,12 @@
  * The pushbutton K1 is connected to GPIO PC13.
  */
 
-#define GPIO_BTN_USER  (GPIO_INPUT | GPIO_FLOAT | GPIO_EXTI | GPIO_PORTC | GPIO_PIN13)
+#define GPIO_BTN_USER (GPIO_INPUT | GPIO_FLOAT | GPIO_EXTI | GPIO_PORTC | GPIO_PIN13)
+
+#define GPIO_SDIO_NCD (GPIO_INPUT | GPIO_PULLUP | GPIO_EXTI | GPIO_PORTD | GPIO_PIN4)
+
+#define SDIO_SLOTNO 0
+#define SDIO_MINOR  0
 
 /****************************************************************************
  * Public Function Prototypes
@@ -135,5 +140,13 @@
  ****************************************************************************/
 
 int stm32_bringup(void);
+
+#ifdef CONFIG_FAT_DMAMEMORY
+int stm32_dma_alloc_init(void);
+#endif
+
+#ifdef CONFIG_MMCSD_SDIO
+int stm32_sdio_initialize(void);
+#endif 
 
 #endif /* __BOARDS_ARM_STM32H7_WEACT_STM32H750_SRC_WEACT_STM32H750_H */

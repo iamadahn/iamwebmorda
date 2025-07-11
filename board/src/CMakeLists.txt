@@ -32,6 +32,14 @@ if(CONFIG_BOARDCTL)
   list(APPEND SRCS stm32_appinitialize.c)
 endif()
 
+if(CONFIG_MMCSD_SDIO)
+  list(APPEND SRCS stm32_sdmmc.c)
+endif()
+
+if(CONFIG_FAT_DMAMEMORY)
+  list(APPEND SRCS stm32_dma_alloc.c)
+endif()
+
 if(CONFIG_ETC_ROMFS)
   nuttx_add_romfs(
     NAME
