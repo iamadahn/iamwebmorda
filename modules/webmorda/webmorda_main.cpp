@@ -23,17 +23,9 @@ extern "C" int main(int argc, FAR char *argv[])
 
     usleep(100 * 1000);
 
-    auto server = webmorda::SingleClientServer(AF_INET, SOCK_STREAM, 0, 80, INADDR_ANY, 1);
-    if (!server.getState()) {
-        printf("webmorda_main: failed to create SingleClientServer.\n");
-        return EXIT_FAILURE;
-    }
-
     while (true) {
-        server.handle();
-        usleep(100 * 1000);
+        sleep(1);
     }
 
     return EXIT_SUCCESS;
 }
-
