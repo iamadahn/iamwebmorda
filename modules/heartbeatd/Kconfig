@@ -3,27 +3,27 @@
 # see the file kconfig-language.txt in the NuttX tools repository.
 #
 
-config MODULES_HEARTBEAT_DAEMON
+config MODULES_HEARTBEATD
 	tristate "Heartbeat led"
 	default n
 	---help---
 		Enable the Heartbeat led
 
-if MODULES_HEARTBEAT_DAEMON
+if MODULES_HEARTBEATD
 
-config MODULES_HEARTBEAT_DAEMON_PROGNAME
+config MODULES_HEARTBEATD_PROGNAME
 	string "Program name"
-	default "heartbeat_daemon"
+	default "heartbeatd"
 	---help---
 		This is the name of the program that will be used when the NSH ELF
 		program is installed.
 
-config MODULES_HEARTBEAT_DAEMON_PRIORITY
-	int "Heartbeat daemon task priority"
+config MODULES_HEARTBEATD_PRIORITY
+	int "Heartbeatd task priority"
 	default 100
 
-config MODULES_HEARTBEAT_DAEMON_STACKSIZE
-	int "Heartbeat daemon stack size"
+config MODULES_HEARTBEATD_STACKSIZE
+	int "Heartbeatd stack size"
 	default DEFAULT_TASK_STACKSIZE
 
-endif 
+endif

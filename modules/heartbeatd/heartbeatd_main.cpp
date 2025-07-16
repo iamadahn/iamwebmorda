@@ -4,16 +4,16 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/ioctl.h>
 
 #include <nuttx/leds/userled.h>
-#include <unistd.h>
 
 bool g_heartbeat_started = false;
 
-static int heartbeat_daemon(int argc, char *argv[])
+static int heartbeatd(int argc, char *argv[])
 {
     int ret;
 
@@ -38,7 +38,7 @@ static int heartbeat_daemon(int argc, char *argv[])
         ret = ioctl(fd, ULEDIOC_SETLED, &heartbeat_led);
         if (ret < 0) {
             int errcode = errno;
-            printf("heartbeat_daemon: Error with ioctl: %d.\n", errcode);
+            printf("heartbeatd: Error with ioctl: %d.\n", errcode);
             close(fd);
             return EXIT_FAILURE;
         }
@@ -52,22 +52,21 @@ static int heartbeat_daemon(int argc, char *argv[])
 extern "C" int main(int argc, FAR char *argv[])
 {
     if (g_heartbeat_started) {
-        printf("heartbeat_daemon_main: heartbeat led daemon is already running\n");
+        printf("heartbeatd_main: heartbeatd is already running\n");
         return EXIT_SUCCESS;
     }
 
-    int ret = task_create(CONFIG_MODULES_HEARTBEAT_DAEMON_PROGNAME,
-                          CONFIG_MODULES_HEARTBEAT_DAEMON_PRIORITY,
-                          CONFIG_MODULES_HEARTBEAT_DAEMON_STACKSIZE,
-                          heartbeat_daemon,
+    int ret = task_create(CONFIG_MODULES_HEARTBEATD_PROGNAME,
+                          CONFIG_MODULES_HEARTBEATD_PRIORITY,
+                          CONFIG_MODULES_HEARTBEATD_STACKSIZE,
+                          heartbeatd,
                           NULL);
 
     if (ret < 0) {
         int errcode = errno;
-        printf("heartbeat_daemon_main: Failed to create heartbeat_daemon: %d.\n", errcode);
+        printf("heartbeatd_main: Failed to start heartbeatd: %d.\n", errcode);
         return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;
 }
-
