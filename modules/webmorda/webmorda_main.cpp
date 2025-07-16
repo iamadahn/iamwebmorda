@@ -6,8 +6,12 @@
 #include <netdb.h>
 #include <unistd.h>
 
-extern "C" int main(int argc, FAR char *argv[])
+bool g_webmorda_started = false;
+
+static int webmorda(int argc, FAR char *argv[])
 {
+    g_webmorda_started = true;
+
     struct addrinfo hints, *res;
 
     hints.ai_family = AF_INET;
@@ -23,6 +27,28 @@ extern "C" int main(int argc, FAR char *argv[])
 
     while (true) {
         sleep(1);
+    }
+
+    return EXIT_SUCCESS;
+}
+
+extern "C" int main(int argc, FAR char *argv[])
+{
+    if (g_webmorda_started) {
+        printf("webmorda_main: webmorda is already running\n");
+        return EXIT_SUCCESS;
+    }
+
+    int ret = task_create(CONFIG_MODULES_WEBMORDA_PROGNAME,
+                          CONFIG_MODULES_WEBMORDA_PRIORITY,
+                          CONFIG_MODULES_WEBMORDA_STACKSIZE,
+                          webmorda,
+                          NULL);
+
+    if (ret < 0) {
+        int errcode = errno;
+        printf("webmorda_main: Failed to start webmorda: %d.\n", errcode);
+        return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;
