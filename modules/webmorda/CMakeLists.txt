@@ -1,11 +1,6 @@
 if(CONFIG_MODULES_WEBMORDA)
     set(SOURCES
         webmorda_main.cpp
-        networking/single_client_server.cpp
-        networking/sockets/simple_socket.cpp
-        networking/sockets/listening_socket.cpp
-        networking/sockets/binding_socket.cpp
-        networking/sockets/connecting_socket.cpp
     )
 
     nuttx_add_application(
@@ -28,4 +23,3 @@ if(CONFIG_MODULES_WEBMORDA)
 
     target_link_libraries(apps PRIVATE cromfs_web-interface)
 endif()
-

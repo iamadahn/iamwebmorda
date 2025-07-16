@@ -6,8 +6,6 @@
 #include <netdb.h>
 #include <unistd.h>
 
-#include "networking/single_client_server.hpp"
-
 extern "C" int main(int argc, FAR char *argv[])
 {
     struct addrinfo hints, *res;
