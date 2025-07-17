@@ -1,17 +1,18 @@
+#include <cerrno>
 #include <stdio.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <nuttx/config.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <string.h>
 
-bool g_webmorda_started = false;
+void serve_file(int client_socket);
 
-static int webmorda(int argc, FAR char *argv[])
+extern "C" int main(int argc, FAR char *argv[])
 {
-    g_webmorda_started = true;
-
     struct addrinfo hints, *res;
 
     hints.ai_family = AF_INET;
@@ -20,36 +21,78 @@ static int webmorda(int argc, FAR char *argv[])
     int ret = getaddrinfo("google.com", "80", &hints, &res);
     if (ret != 0) {
         printf("Unable to resolve adress, quitting\n");
-        return EXIT_FAILURE;
+        return -1;
     }
 
     usleep(100 * 1000);
 
-    while (true) {
-        sleep(1);
+    int server_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (server_socket < 0) {
+        printf("Failed to create a socket - %d.\n", errno);
+        close(server_socket);
+        return -1;
     }
 
-    return EXIT_SUCCESS;
+    struct sockaddr_in server_address = {0}, client_address = {0};
+    server_address.sin_family = AF_INET;
+    server_address.sin_addr.s_addr = INADDR_ANY;
+    server_address.sin_port = htons(80);
+
+    ret = bind(server_socket, (struct sockaddr*)&server_address, sizeof(server_address));
+    if (ret < 0) {
+        printf("Failed to bind socket to port - %d.\n", errno);
+        return -1;
+    }
+
+    ret = listen(server_socket, 1);
+    if (ret < 0) {
+        printf("Failed to start listening for connections - %d.\n", errno);
+        close(server_socket);
+        return -1;
+    }
+
+    while (true) {
+        socklen_t len = sizeof(client_address);
+        int client_socket = accept(server_socket, (struct sockaddr*)&client_address, &len);
+        if (client_socket < 0) {
+            printf("Failed to accept client - %d.\n", errno);
+            continue;
+        } else {
+            printf("Connected.\n");
+        }
+
+        serve_file(client_socket);
+
+        close(client_socket);
+    }
+
+    close(server_socket);
+    return 0;
 }
 
-extern "C" int main(int argc, FAR char *argv[])
+void serve_file(int client_socket)
 {
-    if (g_webmorda_started) {
-        printf("webmorda_main: webmorda is already running\n");
-        return EXIT_SUCCESS;
-    }
+    FILE *file = fopen("/mnt/cromfs/index.html", "r");
+        if (file == NULL) {
+            const char *not_found = "HTTP/1.1 404 Not Found\r\n"
+                                    "Content-Type: text/html\r\n"
+                                    "Content-Length: 45\r\n"
+                                    "\r\n"
+                                    "<h1>404 Not Found</h1>";
+            send(client_socket, not_found, strlen(not_found), 0);
+            return;
+        }
 
-    int ret = task_create(CONFIG_MODULES_WEBMORDA_PROGNAME,
-                          CONFIG_MODULES_WEBMORDA_PRIORITY,
-                          CONFIG_MODULES_WEBMORDA_STACKSIZE,
-                          webmorda,
-                          NULL);
+        char buffer[1024];
+        const char *header = "HTTP/1.1 200 OK\r\n"
+                             "Content-Type: text/html\r\n"
+                             "Connection: close\r\n"
+                             "\r\n";
+        send(client_socket, header, strlen(header), 0);
 
-    if (ret < 0) {
-        int errcode = errno;
-        printf("webmorda_main: Failed to start webmorda: %d.\n", errcode);
-        return EXIT_FAILURE;
-    }
+        while (fgets(buffer, sizeof(buffer), file) != NULL) {
+            send(client_socket, buffer, strlen(buffer), 0);
+        }
 
-    return EXIT_SUCCESS;
+        fclose(file);
 }
