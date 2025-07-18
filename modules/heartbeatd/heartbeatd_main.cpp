@@ -63,8 +63,7 @@ extern "C" int main(int argc, FAR char *argv[])
                           NULL);
 
     if (ret < 0) {
-        int errcode = errno;
-        printf("heartbeatd_main: Failed to start heartbeatd: %d.\n", errcode);
+        printf("heartbeatd_main: Failed to start heartbeatd: %d.\n", errno);
         return EXIT_FAILURE;
     }
 

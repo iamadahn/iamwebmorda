@@ -1,5 +1,5 @@
 cd nuttx-apps
 ln -s ../modules external
 cd ..
-cmake --build build -t menuconfig
+cmake --build output -t menuconfig
 rm nuttx-apps/external

@@ -1,0 +1,24 @@
+config MODULES_WEBSOCKET
+	tristate "Websocket"
+	default n
+	---help---
+		Enable the websocket module
+
+if MODULES_WEBSOCKET
+
+config MODULES_WEBSOCKET_PROGNAME
+	string "Program name"
+	default "websocket"
+	---help---
+		This is the name of the program that will be used when the NSH ELF
+		program is installed.
+
+config MODULES_WEBSOCKET_PRIORITY
+	int "Websocket task priority"
+	default 100
+
+config MODULES_WEBSOCKET_STACKSIZE
+	int "Websocket stack size"
+	default 4096
+
+endif

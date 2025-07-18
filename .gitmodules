@@ -6,3 +6,6 @@
 	path = nuttx-apps
 	url = https://github.com/apache/nuttx-apps
 	branch = releases/12.9
+[submodule "modules/websocket/wsServer"]
+	path = modules/websocket/wsServer
+	url = https://github.com/Theldus/wsServer
