@@ -5,9 +5,12 @@
 #include <unistd.h>
 
 #include "wsServer/include/ws.h"
-#include "pthread.h"
 
 bool g_websocket_started = false;
+
+void onopen(ws_cli_conn_t client);
+void onclose(ws_cli_conn_t client);
+void onmessage(ws_cli_conn_t client, const unsigned char *msg, uint64_t size, int type);
 
 void onopen(ws_cli_conn_t client)
 {
@@ -33,27 +36,31 @@ void onmessage(ws_cli_conn_t client, const unsigned char *msg, uint64_t size, in
     ws_sendframe_bcast(8080, (char *)msg, size, type);
 }
 
-static int websocket(int argc, char *argv[])
+int websocket(int argc, char *argv[])
 {
     struct ws_events events = {
-        .onopen = &onopen,
-        .onclose = &onclose,
-        .onmessage = &onmessage,
+        .onopen = onopen,
+        .onclose = onclose,
+        .onmessage = onmessage,
     };
 
     struct ws_server server = {
         .host = "192.168.31.69",
         .port = 8080,
-        .thread_loop = 0,
+        .thread_loop = 1,
         .timeout_ms = 1000,
         .evs = events,
     };
 
+    sleep(1);
+
+    ws_socket(&server);
+
     while (true) {
-        ws_socket(&server);
+        sleep(1);
     }
 
-    pthread_mutex_lock(NULL);
+    return EXIT_SUCCESS;
 }
 
 extern "C" int main(int argc, FAR char *argv[])

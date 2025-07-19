@@ -19,6 +19,6 @@ config MODULES_WEBSOCKET_PRIORITY
 
 config MODULES_WEBSOCKET_STACKSIZE
 	int "Websocket stack size"
-	default 4096
+	default 2048
 
 endif

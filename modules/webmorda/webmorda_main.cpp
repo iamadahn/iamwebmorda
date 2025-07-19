@@ -1,4 +1,3 @@
-#include <cerrno>
 #include <stdio.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -20,7 +19,7 @@ extern "C" int main(int argc, FAR char *argv[])
 
     int ret = getaddrinfo("google.com", "80", &hints, &res);
     if (ret != 0) {
-        printf("Unable to resolve adress, quitting\n");
+        printf("Unable to resolve adress, quitting - %d\n", errno);
         return -1;
     }
 
@@ -44,7 +43,7 @@ extern "C" int main(int argc, FAR char *argv[])
         return -1;
     }
 
-    ret = listen(server_socket, 1);
+    ret = listen(server_socket, 8);
     if (ret < 0) {
         printf("Failed to start listening for connections - %d.\n", errno);
         close(server_socket);
@@ -57,8 +56,6 @@ extern "C" int main(int argc, FAR char *argv[])
         if (client_socket < 0) {
             printf("Failed to accept client - %d.\n", errno);
             continue;
-        } else {
-            printf("Connected.\n");
         }
 
         serve_file(client_socket);
